@@ -29,7 +29,7 @@ router.get("/:id", (req,res) => {
     })
     .catch(err => {
         console.log(err)
-        res.status(500).json({errMessage:'The posts information could not be retrieved.' })
+        res.status(500).json({errMessage:'The projects could not be retrieved.' })
         });
 })
 
@@ -42,7 +42,7 @@ router.get("/:id/actions", (req,res) => {
     })
     .catch(err => {
         console.log(err)
-        res.status(500).json({errMessage:'The comments information could not be retrieved.' })
+        res.status(500).json({errMessage:'The actions could not be retrieved.' })
         });
 })
 
@@ -56,7 +56,7 @@ router.get("/:id/actions/:actid", (req,res) => {
     })
     .catch(err => {
         console.log(err)
-        res.status(500).json({errMessage:'The comments information could not be retrieved.' })
+        res.status(500).json({errMessage:'The action information could not be retrieved.' })
         });
 })
 
@@ -75,7 +75,7 @@ router.post("/", (req,res) => {
         })
         .catch(err => {
             console.log(err)
-            res.status(500).json({errMessage:'There was an error while saving the post to the database' })
+            res.status(500).json({errMessage:'There was an error while saving the project to the database' })
         });
     }
     
@@ -124,6 +124,29 @@ router.delete("/:id", (req,res) => {
       });
 })
 
+// deletes action by id
+router.delete("/:id/actions/:actid", (req,res) => {
+  const id = req.params.id;
+    const actID = req.params.actid
+
+  Project.getProjectActions(id)
+      .then(post => {
+          const actionID = post[actID-1].id;
+          Action.remove(actionID)
+          .then(act => {
+              if (act > 0) {
+              res.status(200).json({ message: "The action has been removed" });
+          } else {
+              res.status(404).json({ message: "The action with the specified ID does not exist." });
+          }
+          })
+          .catch(err => {
+          console.log(err)
+          res.status(500).json({errMessage:'The post could not be removed' })
+      });
+      })
+})
+
 // updates project by id
 router.put("/:id", (req,res) => {
   const {id} = req.params;
@@ -147,6 +170,31 @@ router.put("/:id", (req,res) => {
             res.status(500).json({errMessage:'There was an error while saving the project to the database' })
         });
     }
+  })
+
+// changes actions by id
+router.put("/:id/actions/:actid", (req,res) => {
+  const {id} = req.params;
+  const actID = req.params.actid
+  const actionInfo = {...req.body, project_id:id};
+
+Project.getProjectActions(id)
+    .then(post => {
+        const actionID = post[actID-1].id;
+      Action.update(actionID, actionInfo)
+        .then(a => {
+          if(!a){
+            res.status(404).json({errorMessage:"The action with the specified ID does not exist."})
+          }
+          else {
+            res.status(201).json(a);
+          }
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json({errMessage:'There was an error while saving the project to the database' })
+        });
+    })
   })
 
 
